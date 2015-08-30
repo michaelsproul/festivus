@@ -5,7 +5,9 @@ authors = ["Michael Sproul <micsproul@gmail.com>"]
 
 [dependencies]
 
-iron = "*"
+iron = "0.2"
+router = "*"
+urlencoded = "*"
 r2d2 = "*"
 r2d2_postgres = "*"
 chrono = "0.2"
