@@ -15,7 +15,7 @@ use std::io::Read;
 use std::error::Error as ErrorT;
 
 use iron::prelude::*;
-use iron_pg::{PostgresMiddleware, PostgresReqExt};
+use iron_pg::PostgresMiddleware;
 
 type Error = Box<ErrorT>;
 type Conn = r2d2::PooledConnection<r2d2_postgres::PostgresConnectionManager>;
