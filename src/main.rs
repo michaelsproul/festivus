@@ -1,3 +1,6 @@
+#![feature(plugin, custom_derive)]
+#![plugin(serde_macros)]
+
 extern crate iron;
 #[macro_use] extern crate router;
 extern crate urlencoded;
@@ -6,8 +9,11 @@ extern crate r2d2;
 extern crate r2d2_postgres;
 extern crate postgres;
 extern crate chrono;
+extern crate serde;
+extern crate serde_json;
 
 mod api;
+mod types;
 
 use std::path::Path;
 use std::fs::File;

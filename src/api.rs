@@ -3,10 +3,13 @@ use iron::status::Status::{self, BadRequest, InternalServerError};
 use iron::prelude::*;
 use router::Router;
 use urlencoded::UrlEncodedBody;
-
 use iron_pg::PostgresReqExt;
+use serde_json;
+
+use types::{Power, PowerView};
 
 const INSERT_SQL: &'static str = "INSERT INTO power (time, peak, offpeak) VALUES (now(), $1, $2)";
+const QUERY_SQL: &'static str = "SELECT time, peak, offpeak FROM power";
 
 pub fn create_router() -> Router {
     router! {
@@ -17,8 +20,31 @@ pub fn create_router() -> Router {
     }
 }
 
-fn get_power(_req: &mut Request) -> IronResult<Response> {
-    Ok(Response::with("GET /power"))
+// GET /power?start=X&end=X
+fn get_power(req: &mut Request) -> IronResult<Response> {
+    let conn = req.db_conn();
+    let stmt = conn.prepare(QUERY_SQL).unwrap();
+    let query = stmt.query(&[]);
+    let rows = match query {
+        Ok(rows) => rows,
+        Err(e) => {
+            println!("ERROR - DB query response:\n{:?}", e);
+            return err_response(InternalServerError, "Error querying DB");
+        }
+    };
+
+    let data: Vec<PowerView> = rows.into_iter().map(|row| {
+        Power {
+            time: row.get(0),
+            peak: row.get(1),
+            offpeak: row.get(2)
+        }.view()
+    }).collect();
+
+    // FIXME: could use some sort of insane iterator streaming instead.
+    let data_string = serde_json::ser::to_string(&data).unwrap();
+
+    Ok(Response::with((Status::Ok, data_string)))
 }
 
 // Parse a POST request with body of the form: peak=X&offpeak=Y.
