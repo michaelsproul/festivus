@@ -53,19 +53,19 @@ fn post_power(req: &mut Request) -> IronResult<Response> {
         Ok(body) => body,
         Err(_) => return err_response(BadRequest, "Not URL-encoded.")
     };
-    
+
     let (peak_str, offpeak_str) = match (req_body.get("peak").and_then(|v| v.first()),
                                          req_body.get("offpeak").and_then(|v| v.first())) {
         (Some(peak), Some(offpeak)) => (peak, offpeak),
         _ => return err_response(BadRequest, "Values for 'peak' and 'offpeak' not given.")
     };
-    
+
     let (peak, offpeak) : (i32, i32) = match (peak_str.parse(), offpeak_str.parse()) {
         (Ok(x), Ok(y)) if x >= 0 && y >= 0 => (x, y),
         _ => return err_response(BadRequest, "Non-integer power values.")
     };
     println!("Received peak={} offpeak={}", peak, offpeak);
-    
+
     // Insert into DB.
     let conn = req.db_conn();
     match conn.prepare(INSERT_SQL).and_then(|s| s.execute(&[&peak, &offpeak])) {

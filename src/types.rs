@@ -32,7 +32,6 @@ enum ValueIter(I) where I is an iterator.
 
 impl WriteBody for I where I: Iterator<Item=PowerView> {
     fn write_body(&mut self, res: &mut ResponseBody) -> Result<(), ()> {
-
         serde_json::ser::to_writer(res, self)
     }
 }

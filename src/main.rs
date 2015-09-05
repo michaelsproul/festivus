@@ -68,12 +68,12 @@ fn initialise_db(conn: &Conn) -> Result<(), Error> {
 
 fn main() {
     let db_manager = PostgresMiddleware::new(&format!("postgres://{}@localhost/{}", DB_USER, DB_NAME));
-    
+
     if let Err(e) = initialise_db(&db_manager.pool.get().unwrap()) {
         println!("{:?}", e);
         panic!("DB initialisation error");
     }
-    
+
     let router = api::create_router();
 
     let mut server = Chain::new(router);
