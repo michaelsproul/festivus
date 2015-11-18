@@ -1,9 +1,19 @@
-use chrono::{DateTime, Local};
+use iron::prelude::*;
+use chrono::{DateTime, FixedOffset};
+
+pub use self::PowerStream::*;
+
+pub type Date = DateTime<FixedOffset>;
 
 pub struct Power {
-    pub time: DateTime<Local>,
+    pub time: Date,
     pub peak: i32,
     pub offpeak: i32,
+}
+
+pub enum PowerStream {
+    Peak,
+    Offpeak
 }
 
 impl Power {
@@ -22,6 +32,8 @@ pub struct PowerView {
     pub peak: i32,
     pub offpeak: i32
 }
+
+pub type WebResult<T> = Result<T, Response>;
 
 /*
 use std::iter::Iterator;

@@ -1,4 +1,4 @@
-#![feature(plugin, custom_derive)]
+#![feature(plugin, custom_derive, slice_splits)]
 #![plugin(serde_macros)]
 
 extern crate iron;
@@ -14,8 +14,11 @@ extern crate serde_json;
 extern crate plugin;
 extern crate typemap;
 
+#[macro_use] mod util;
 mod api;
+mod db;
 mod types;
+mod compute;
 
 use std::path::Path;
 use std::fs::File;

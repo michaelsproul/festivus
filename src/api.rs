@@ -12,11 +12,12 @@ use iron_pg::PostgresReqExt;
 use serde_json;
 use chrono::{DateTime, FixedOffset};
 
-use types::{Power, PowerView};
+use types::*;
+use util::*;
+use db;
+use compute::integral;
 
 const INSERT_SQL: &'static str = "INSERT INTO power (time, peak, offpeak) VALUES (now(), $1, $2)";
-const QUERY_SQL: &'static str =
-    "SELECT time, peak, offpeak FROM power WHERE time >= $1 AND time <= $2";
 
 pub fn create_router() -> Router {
     router! {
@@ -27,38 +28,24 @@ pub fn create_router() -> Router {
     }
 }
 
+// Parse start and end params from a query string.
+fn get_start_and_end(req: &mut Request) -> WebResult<(Date, Date)> {
+    match (get_query_param(req, "start").and_then(parse_date),
+           get_query_param(req, "end").and_then(parse_date)) {
+        (Ok(x), Ok(y)) => Ok((x, y)),
+        _ => Err(err_response(BadRequest, "Start and end dates not specified."))
+    }
+}
+
 // GET /power?start=X&end=X
 fn get_power(req: &mut Request) -> IronResult<Response> {
-    // Parse start and end params.
-    let (start, end) = match (get_query_param(req, "start").and_then(parse_date),
-                              get_query_param(req, "end").and_then(parse_date)) {
-        (Ok(x), Ok(y)) => (x, y),
-        _ => return err_response(BadRequest, "Start and end dates not specified.")
-    };
+    let (start, end) = try_res!(get_start_and_end(req));
     println!("start: {:?}. end: {:?}", start, end);
 
-    // Retrieve rows from the DB.
-    let conn = req.db_conn();
-    let stmt = conn.prepare(QUERY_SQL).unwrap();
-    let query = stmt.query(&[&start, &end]);
-    let rows = match query {
-        Ok(rows) => rows,
-        Err(e) => {
-            println!("ERROR - DB query response:\n{:?}", e);
-            return err_response(InternalServerError, "Error querying DB");
-        }
-    };
+    let power_data: Vec<Power> = try_res!(db::get_power(req, start, end));
+    let power_view: Vec<PowerView> = power_data.into_iter().map(Power::view).collect();
 
-    let data: Vec<PowerView> = rows.into_iter().map(|row| {
-        Power {
-            time: row.get(0),
-            peak: row.get(1),
-            offpeak: row.get(2)
-        }.view()
-    }).collect();
-
-    // FIXME: could use some sort of insane iterator streaming instead.
-    let data_string = serde_json::ser::to_string(&data).unwrap();
+    let data_string = serde_json::ser::to_string(&power_view).unwrap();
 
     Ok(Response::with((Status::Ok, data_string)))
 }
@@ -68,7 +55,7 @@ fn post_power(req: &mut Request) -> IronResult<Response> {
     let (peak, offpeak) = match (get_body_param(req, "peak").and_then(parse_i32),
                                  get_body_param(req, "offpeak").and_then(parse_i32)) {
         (Ok(x), Ok(y)) if x >= 0 && y >= 0 => (x, y),
-        _ => return err_response(BadRequest, "Unable to parse integer values for peak+offpeak.")
+        _ => return Ok(err_response(BadRequest, "Unable to parse integer values for peak+offpeak."))
     };
     println!("Received peak={} offpeak={}", peak, offpeak);
 
@@ -79,19 +66,27 @@ fn post_power(req: &mut Request) -> IronResult<Response> {
         Ok(1) => (),
         x => {
             println!("ERROR - DB insert response:\n{:?}", x);
-            return err_response(InternalServerError, "Error inserting values into DB.");
+            return Ok(err_response(InternalServerError, "Error inserting values into DB."));
         }
     }
 
     Ok(Response::with((Status::Ok, "Success.")))
 }
 
-fn get_energy(_req: &mut Request) -> IronResult<Response> {
-    Ok(Response::with("GET /energy"))
-}
+// GET /energy?start=X&end=Y&stream=(peak|offpeak)
+fn get_energy(req: &mut Request) -> IronResult<Response> {
+    let (start, end) = try_res!(get_start_and_end(req));
+    let stream = match get_query_param(req, "stream") {
+        Ok(ref s) if s == "peak" => Peak,
+        Ok(ref s) if s == "offpeak" => Offpeak,
+        _ => return Ok(err_response(BadRequest, "Missing or invalid value for stream parameter."))
+    };
 
-fn err_response(status: Status, msg: &str) -> IronResult<Response> {
-    Ok(Response::with((status, msg)))
+    let power = try_res!(db::get_power(req, start, end));
+    let energy = integral(&power, stream);
+    let response_str = format!("{}", energy);
+
+    Ok(Response::with((Status::Ok, response_str)))
 }
 
 fn root_handler(req: &mut Request) -> IronResult<Response> {
