@@ -14,6 +14,8 @@ chrono = "0.2"
 serde = "*"
 serde_json = "*"
 serde_macros = "*"
+plugin = "*"
+typemap = "*"
 
 [dependencies.postgres]
 version = "0.9"

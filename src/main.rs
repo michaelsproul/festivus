@@ -11,6 +11,8 @@ extern crate postgres;
 extern crate chrono;
 extern crate serde;
 extern crate serde_json;
+extern crate plugin;
+extern crate typemap;
 
 mod api;
 mod types;

@@ -1,15 +1,22 @@
 use iron;
 use iron::status::Status::{self, BadRequest, InternalServerError};
 use iron::prelude::*;
+
+use plugin;
+use typemap::Key;
+
 use router::Router;
-use urlencoded::UrlEncodedBody;
+use urlencoded::{UrlEncodedQuery, UrlEncodedBody, QueryMap};
 use iron_pg::PostgresReqExt;
+
 use serde_json;
+use chrono::{DateTime, FixedOffset};
 
 use types::{Power, PowerView};
 
 const INSERT_SQL: &'static str = "INSERT INTO power (time, peak, offpeak) VALUES (now(), $1, $2)";
-const QUERY_SQL: &'static str = "SELECT time, peak, offpeak FROM power";
+const QUERY_SQL: &'static str =
+    "SELECT time, peak, offpeak FROM power WHERE time >= $1 AND time <= $2";
 
 pub fn create_router() -> Router {
     router! {
@@ -22,9 +29,18 @@ pub fn create_router() -> Router {
 
 // GET /power?start=X&end=X
 fn get_power(req: &mut Request) -> IronResult<Response> {
+    // Parse start and end params.
+    let (start, end) = match (get_query_param(req, "start").and_then(parse_date),
+                              get_query_param(req, "end").and_then(parse_date)) {
+        (Ok(x), Ok(y)) => (x, y),
+        _ => return err_response(BadRequest, "Start and end dates not specified.")
+    };
+    println!("start: {:?}. end: {:?}", start, end);
+
+    // Retrieve rows from the DB.
     let conn = req.db_conn();
     let stmt = conn.prepare(QUERY_SQL).unwrap();
-    let query = stmt.query(&[]);
+    let query = stmt.query(&[&start, &end]);
     let rows = match query {
         Ok(rows) => rows,
         Err(e) => {
@@ -49,20 +65,10 @@ fn get_power(req: &mut Request) -> IronResult<Response> {
 
 // Parse a POST request with body of the form: peak=X&offpeak=Y.
 fn post_power(req: &mut Request) -> IronResult<Response> {
-    let req_body = match req.get::<UrlEncodedBody>() {
-        Ok(body) => body,
-        Err(_) => return err_response(BadRequest, "Not URL-encoded.")
-    };
-
-    let (peak_str, offpeak_str) = match (req_body.get("peak").and_then(|v| v.first()),
-                                         req_body.get("offpeak").and_then(|v| v.first())) {
-        (Some(peak), Some(offpeak)) => (peak, offpeak),
-        _ => return err_response(BadRequest, "Values for 'peak' and 'offpeak' not given.")
-    };
-
-    let (peak, offpeak) : (i32, i32) = match (peak_str.parse(), offpeak_str.parse()) {
+    let (peak, offpeak) = match (get_body_param(req, "peak").and_then(parse_i32),
+                                 get_body_param(req, "offpeak").and_then(parse_i32)) {
         (Ok(x), Ok(y)) if x >= 0 && y >= 0 => (x, y),
-        _ => return err_response(BadRequest, "Non-integer power values.")
+        _ => return err_response(BadRequest, "Unable to parse integer values for peak+offpeak.")
     };
     println!("Received peak={} offpeak={}", peak, offpeak);
 
@@ -94,4 +100,30 @@ fn root_handler(req: &mut Request) -> IronResult<Response> {
     let rows = stmt.query(&[]).unwrap();
     let response_str = format!("{:?}", rows);
     Ok(Response::with((iron::status::Ok, response_str)))
+}
+
+fn get_query_param<'a, 'b>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> {
+    get_param::<UrlEncodedQuery>(req, param)
+}
+
+fn get_body_param<'a, 'b>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> {
+    get_param::<UrlEncodedBody>(req, param)
+}
+
+fn get_param<'a, 'b, T>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> where
+    T: plugin::Plugin<Request<'a, 'b>>,
+    T: Key<Value=QueryMap> {
+    let req_body = match req.get_ref::<T>() {
+        Ok(body) => body,
+        Err(_) => return Err(())
+    };
+    req_body.get(param).and_then(|v| v.first().cloned()).ok_or(())
+}
+
+fn parse_i32(v: String) -> Result<i32, ()> {
+    v.parse().map_err(|_| ())
+}
+
+fn parse_date(v: String) -> Result<DateTime<FixedOffset>, ()> {
+    v.parse().map_err(|_| ())
 }
