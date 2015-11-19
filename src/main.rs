@@ -1,6 +1,3 @@
-//#![feature(slice_splits)]
-//#![plugin(serde_macros)]
-
 extern crate iron;
 #[macro_use] extern crate router;
 extern crate urlencoded;
