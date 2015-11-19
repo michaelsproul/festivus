@@ -1,5 +1,5 @@
-#![feature(plugin, custom_derive, slice_splits)]
-#![plugin(serde_macros)]
+//#![feature(slice_splits)]
+//#![plugin(serde_macros)]
 
 extern crate iron;
 #[macro_use] extern crate router;
@@ -9,8 +9,7 @@ extern crate r2d2;
 extern crate r2d2_postgres;
 extern crate postgres;
 extern crate chrono;
-extern crate serde;
-extern crate serde_json;
+extern crate rustc_serialize;
 extern crate plugin;
 extern crate typemap;
 
@@ -32,6 +31,7 @@ type Error = Box<ErrorT>;
 type Conn = r2d2::PooledConnection<r2d2_postgres::PostgresConnectionManager>;
 
 const DB_USER: &'static str = "postgres";
+const DB_PASS: &'static str = "postgres";
 const DB_NAME: &'static str = "festivus";
 
 const TABLES: &'static [&'static str] = &["power", "energy"];
@@ -72,12 +72,18 @@ fn initialise_db(conn: &Conn) -> Result<(), Error> {
 }
 
 fn main() {
-    let db_manager = PostgresMiddleware::new(&format!("postgres://{}@localhost/{}", DB_USER, DB_NAME));
-
-    if let Err(e) = initialise_db(&db_manager.pool.get().unwrap()) {
-        println!("{:?}", e);
-        panic!("DB initialisation error");
+    if let Err(e) = main_with_result() {
+        println!("Error: {:?}", e)
     }
+}
+
+fn main_with_result() -> Result<(), Error> {
+    let db_url = format!("postgres://{}:{}@localhost/{}", DB_USER, DB_PASS, DB_NAME);
+    let db_manager = PostgresMiddleware::new(&db_url);
+    println!("Connection pool established.");
+
+    let conn = try!(db_manager.pool.get());
+    try!(initialise_db(&conn));
 
     let router = api::create_router();
 
@@ -85,4 +91,6 @@ fn main() {
     server.link_before(db_manager);
 
     Iron::new(server).http("localhost:3000").unwrap();
+
+    Ok(())
 }

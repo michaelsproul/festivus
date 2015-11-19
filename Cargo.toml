@@ -11,14 +11,12 @@ urlencoded = "*"
 r2d2 = "*"
 r2d2_postgres = "*"
 chrono = "0.2"
-serde = "*"
-serde_json = "*"
-serde_macros = "*"
+rustc-serialize = "0.3"
 plugin = "*"
 typemap = "*"
 
 [dependencies.postgres]
-version = "0.9"
+version = "*"
 features = ["chrono"]
 
 [dependencies.iron-postgres-middleware]

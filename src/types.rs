@@ -26,7 +26,7 @@ impl Power {
     }
 }
 
-#[derive(Serialize)]
+#[derive(RustcEncodable)]
 pub struct PowerView {
     pub time: String,
     pub peak: i32,

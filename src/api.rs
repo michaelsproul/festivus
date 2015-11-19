@@ -9,7 +9,7 @@ use router::Router;
 use urlencoded::{UrlEncodedQuery, UrlEncodedBody, QueryMap};
 use iron_pg::PostgresReqExt;
 
-use serde_json;
+use rustc_serialize::json;
 use chrono::{DateTime, FixedOffset};
 
 use types::*;
@@ -45,7 +45,7 @@ fn get_power(req: &mut Request) -> IronResult<Response> {
     let power_data: Vec<Power> = try_res!(db::get_power(req, start, end));
     let power_view: Vec<PowerView> = power_data.into_iter().map(Power::view).collect();
 
-    let data_string = serde_json::ser::to_string(&power_view).unwrap();
+    let data_string = format!("{}", json::as_json(&power_view));
 
     Ok(Response::with((Status::Ok, data_string)))
 }
