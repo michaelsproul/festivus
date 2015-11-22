@@ -17,7 +17,7 @@ use util::*;
 use db;
 use compute::integral;
 
-const INSERT_SQL: &'static str = "INSERT INTO power (time, peak, offpeak) VALUES (now(), $1, $2)";
+const INSERT_SQL: &'static str = "INSERT INTO power (time, ch1, ch2, ch3) VALUES (now(), $1, $2, $3)";
 
 pub fn create_router() -> Router {
     router! {
@@ -61,7 +61,7 @@ fn post_power(req: &mut Request) -> IronResult<Response> {
 
     // Insert into DB.
     let conn = req.db_conn();
-    match conn.prepare(INSERT_SQL).and_then(|s| s.execute(&[&peak, &offpeak])) {
+    match conn.prepare(INSERT_SQL).and_then(|s| s.execute(&[&peak, &offpeak, &0])) {
         // 1 row modified, good!
         Ok(1) => (),
         x => {
