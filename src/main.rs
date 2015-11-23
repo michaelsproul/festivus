@@ -76,7 +76,7 @@ fn main() {
 
 fn main_with_result() -> Result<(), Error> {
     let db_url = format!("postgres://{}:{}@localhost/{}", DB_USER, DB_PASS, DB_NAME);
-    let db_manager = PostgresMiddleware::new(&db_url);
+    let db_manager = try!(PostgresMiddleware::new(&db_url));
     println!("Connection pool established.");
 
     let conn = try!(db_manager.pool.get());

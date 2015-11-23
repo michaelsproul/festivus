@@ -2,9 +2,9 @@
 name = "festivus"
 version = "0.1.0"
 dependencies = [
- "chrono 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chrono 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "iron-postgres-middleware 0.0.2 (git+https://github.com/martinsp/iron-postgres-middleware.git)",
+ "iron-postgres-middleware 0.0.3 (git+https://github.com/martinsp/iron-postgres-middleware.git)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "postgres 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -57,10 +57,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "chrono"
-version = "0.2.16"
+version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -124,7 +124,7 @@ dependencies = [
  "language-tags 0.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "mime 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "solicit 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -146,7 +146,7 @@ dependencies = [
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "modifier 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.38 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -154,8 +154,8 @@ dependencies = [
 
 [[package]]
 name = "iron-postgres-middleware"
-version = "0.0.2"
-source = "git+https://github.com/martinsp/iron-postgres-middleware.git#50beacb5fc0794621d340b0e1d392f7dff39f562"
+version = "0.0.3"
+source = "git+https://github.com/martinsp/iron-postgres-middleware.git#964b528a1ecd2cfd57110c2a5c856a81bf867abd"
 dependencies = [
  "iron 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -229,7 +229,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "net2"
-version = "0.2.17"
+version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -241,7 +241,7 @@ dependencies = [
 
 [[package]]
 name = "num"
-version = "0.1.27"
+version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "rand 0.3.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -250,10 +250,12 @@ dependencies = [
 
 [[package]]
 name = "num_cpus"
-version = "0.2.7"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "kernel32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -346,9 +348,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bufstream 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "chrono 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chrono 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "net2 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
+ "net2 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "phf 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "phf_codegen 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -475,6 +477,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "url"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "urlencoded"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -482,7 +494,7 @@ dependencies = [
  "bodyparser 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "url 0.2.38 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
