@@ -7,21 +7,24 @@ pub type Date = DateTime<FixedOffset>;
 
 pub struct Power {
     pub time: Date,
-    pub peak: i32,
-    pub offpeak: i32,
+    pub total: i32,
+    pub hot_water: i32,
+    pub solar: i32
 }
 
 pub enum PowerStream {
-    Peak,
-    Offpeak
+    Total,
+    HotWater,
+    Solar
 }
 
 impl Power {
     pub fn view(self) -> PowerView {
         PowerView {
             time: self.time.to_rfc3339(),
-            peak: self.peak,
-            offpeak: self.offpeak
+            total: self.total,
+            hot_water: self.hot_water,
+            solar: self.solar
         }
     }
 }
@@ -29,8 +32,9 @@ impl Power {
 #[derive(RustcEncodable)]
 pub struct PowerView {
     pub time: String,
-    pub peak: i32,
-    pub offpeak: i32
+    pub total: i32,
+    pub hot_water: i32,
+    pub solar: i32
 }
 
 pub type WebResult<T> = Result<T, Response>;

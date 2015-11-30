@@ -8,7 +8,7 @@ use types::*;
 use util::err_response;
 
 const QUERY_SQL: &'static str =
-    "SELECT time, ch1, ch2, ch3 FROM power WHERE time >= $1 AND time <= $2";
+    "SELECT time, total, hot_water, solar FROM power WHERE time >= $1 AND time <= $2";
 
 // Retrieve rows from the DB.
 pub fn get_power(req: &mut Request, start: Date, end: Date) -> WebResult<Vec<Power>> {
@@ -19,8 +19,9 @@ pub fn get_power(req: &mut Request, start: Date, end: Date) -> WebResult<Vec<Pow
         rows.into_iter().map(|row| {
             Power {
                 time: row.get(0),
-                peak: row.get(1),
-                offpeak: row.get(2)
+                total: row.get(1),
+                hot_water: row.get(2),
+                solar: row.get(3)
             }
         }).collect()
     }).map_err(|_| err_response(InternalServerError, "Error querying DB"))

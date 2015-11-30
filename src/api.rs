@@ -17,7 +17,7 @@ use util::*;
 use db;
 use compute::integral;
 
-const INSERT_SQL: &'static str = "INSERT INTO power (time, ch1, ch2, ch3) VALUES (now(), $1, $2, $3)";
+const INSERT_SQL: &'static str = "INSERT INTO power (time, total, hot_water, solar) VALUES (now(), $1, $2, $3)";
 
 pub fn create_router() -> Router {
     router! {
@@ -50,18 +50,20 @@ fn get_power(req: &mut Request) -> IronResult<Response> {
     Ok(Response::with((Status::Ok, data_string)))
 }
 
-// Parse a POST request with body of the form: peak=X&offpeak=Y.
+// Parse a POST request with body of the form: total=X&hot_water=Y&solar=Z.
 fn post_power(req: &mut Request) -> IronResult<Response> {
-    let (peak, offpeak) = match (get_body_param(req, "peak").and_then(parse_i32),
-                                 get_body_param(req, "offpeak").and_then(parse_i32)) {
-        (Ok(x), Ok(y)) if x >= 0 && y >= 0 => (x, y),
-        _ => return Ok(err_response(BadRequest, "Unable to parse integer values for peak+offpeak."))
+    let (total, hot_water, solar) =
+        match (get_body_param(req, "total").and_then(parse_i32),
+               get_body_param(req, "hot_water").and_then(parse_i32),
+               get_body_param(req, "solar").and_then(parse_i32)) {
+        (Ok(x), Ok(y), Ok(z)) if x >= 0 && y >= 0 && z >= 0 => (x, y, z),
+        _ => return Ok(err_response(BadRequest, "Unable to parse integer values for total, hot_water and solar."))
     };
-    println!("Received peak={} offpeak={}", peak, offpeak);
+    println!("Received total={}, hot_water={}, solar={}", total, hot_water, solar);
 
     // Insert into DB.
     let conn = req.db_conn();
-    match conn.prepare(INSERT_SQL).and_then(|s| s.execute(&[&peak, &offpeak, &0])) {
+    match conn.prepare(INSERT_SQL).and_then(|s| s.execute(&[&total, &hot_water, &solar])) {
         // 1 row modified, good!
         Ok(1) => (),
         x => {
@@ -73,12 +75,13 @@ fn post_power(req: &mut Request) -> IronResult<Response> {
     Ok(Response::with((Status::Ok, "Success.")))
 }
 
-// GET /energy?start=X&end=Y&stream=(peak|offpeak)
+// GET /energy?start=X&end=Y&stream=(total|hot_water|solar)
 fn get_energy(req: &mut Request) -> IronResult<Response> {
     let (start, end) = try_res!(get_start_and_end(req));
     let stream = match get_query_param(req, "stream") {
-        Ok(ref s) if s == "peak" => Peak,
-        Ok(ref s) if s == "offpeak" => Offpeak,
+        Ok(ref s) if s == "total" => Total,
+        Ok(ref s) if s == "hot_water" => HotWater,
+        Ok(ref s) if s == "solar" => Solar,
         _ => return Ok(err_response(BadRequest, "Missing or invalid value for stream parameter."))
     };
 

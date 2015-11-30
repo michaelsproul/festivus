@@ -8,8 +8,9 @@ pub fn integral(data: &[Power], stream: PowerStream) -> i64 {
 
     tail.iter().fold((first, 0), |(prev, total), current| {
         let prev_value = match stream {
-            Peak => prev.peak,
-            Offpeak => prev.offpeak
+            Total => prev.total,
+            HotWater => prev.hot_water,
+            Solar => prev.solar
         };
         let dt = (current.time - prev.time).num_seconds();
 
