@@ -57,7 +57,14 @@ fn all_streams() -> HashSet<PowerStream> {
     streams
 }
 
-// GET /power?start=X&end=X
+// GET /power
+//
+// Mandatory parameters:
+// * start, end. ISO8601 formatted timestamps.
+//
+// Optional parameters:
+// * stream. One or more stream names from {total, hot_water, solar}. Default: all.
+// * energy. Whether or not to compute an energy integral for the given range. Default: false.
 fn get_power(req: &mut Request) -> IronResult<Response> {
     let (start, end) = try_res!(get_start_and_end(req));
     let streams = get_streams(req).unwrap_or_else(|| all_streams());
