@@ -1,9 +1,12 @@
 use iron::prelude::*;
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, Local};
 
 pub use self::PowerStream::*;
 
-pub type Date = DateTime<FixedOffset>;
+/// Dates are all expressed in the current local timezone.
+/// Input dates should be ISO8601 with explicit offsets, or UTC.
+/// All output dates are local.
+pub type Date = DateTime<Local>;
 
 pub struct Power {
     pub time: Date,
@@ -18,23 +21,12 @@ pub enum PowerStream {
     Solar
 }
 
-impl Power {
-    pub fn view(self) -> PowerView {
-        PowerView {
-            time: self.time.to_rfc3339(),
-            total: self.total,
-            hot_water: self.hot_water,
-            solar: self.solar
-        }
-    }
-}
-
 #[derive(RustcEncodable)]
-pub struct PowerView {
-    pub time: String,
-    pub total: i32,
-    pub hot_water: i32,
-    pub solar: i32
+pub struct PlotJson<T> {
+    /// Date-time strings.
+    pub x: Vec<String>,
+    // Values.
+    pub y: Vec<T>
 }
 
 pub type WebResult<T> = Result<T, Response>;

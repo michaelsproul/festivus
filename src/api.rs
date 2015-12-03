@@ -10,7 +10,6 @@ use urlencoded::{UrlEncodedQuery, UrlEncodedBody, QueryMap};
 use iron_pg::PostgresReqExt;
 
 use rustc_serialize::json;
-use chrono::{DateTime, FixedOffset};
 
 use types::*;
 use util::*;
@@ -40,12 +39,18 @@ fn get_start_and_end(req: &mut Request) -> WebResult<(Date, Date)> {
 // GET /power?start=X&end=X
 fn get_power(req: &mut Request) -> IronResult<Response> {
     let (start, end) = try_res!(get_start_and_end(req));
-    println!("start: {:?}. end: {:?}", start, end);
+    println!("start: {:?}, end: {:?}", start, end);
 
     let power_data: Vec<Power> = try_res!(db::get_power(req, start, end));
-    let power_view: Vec<PowerView> = power_data.into_iter().map(Power::view).collect();
 
-    let data_string = format!("{}", json::as_json(&power_view));
+    // Construct the x and y values for plotting.
+    let x_values: Vec<String> = power_data.iter().map(|x| &x.time).map(timestamp).collect();
+    let y_values: Vec<i32> = power_data.iter().map(|x| x.total).collect();
+
+    let result = PlotJson { x: x_values, y: y_values };
+
+    // TODO: JSON-P.
+    let data_string = format!("{}", json::as_json(&result));
 
     Ok(Response::with((Status::Ok, data_string)))
 }
@@ -122,6 +127,6 @@ fn parse_i32(v: String) -> Result<i32, ()> {
     v.parse().map_err(|_| ())
 }
 
-fn parse_date(v: String) -> Result<DateTime<FixedOffset>, ()> {
+fn parse_date(v: String) -> Result<Date, ()> {
     v.parse().map_err(|_| ())
 }
