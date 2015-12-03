@@ -2,11 +2,8 @@ use iron;
 use iron::status::Status::{self, BadRequest, InternalServerError};
 use iron::prelude::*;
 
-use plugin;
-use typemap::Key;
-
 use router::Router;
-use urlencoded::{UrlEncodedQuery, UrlEncodedBody, QueryMap};
+
 use iron_pg::PostgresReqExt;
 
 use rustc_serialize::json;
@@ -103,30 +100,4 @@ fn root_handler(req: &mut Request) -> IronResult<Response> {
     let rows = stmt.query(&[]).unwrap();
     let response_str = format!("{:?}", rows);
     Ok(Response::with((iron::status::Ok, response_str)))
-}
-
-fn get_query_param<'a, 'b>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> {
-    get_param::<UrlEncodedQuery>(req, param)
-}
-
-fn get_body_param<'a, 'b>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> {
-    get_param::<UrlEncodedBody>(req, param)
-}
-
-fn get_param<'a, 'b, T>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> where
-    T: plugin::Plugin<Request<'a, 'b>>,
-    T: Key<Value=QueryMap> {
-    let req_body = match req.get_ref::<T>() {
-        Ok(body) => body,
-        Err(_) => return Err(())
-    };
-    req_body.get(param).and_then(|v| v.first().cloned()).ok_or(())
-}
-
-fn parse_i32(v: String) -> Result<i32, ()> {
-    v.parse().map_err(|_| ())
-}
-
-fn parse_date(v: String) -> Result<Date, ()> {
-    v.parse().map_err(|_| ())
 }
