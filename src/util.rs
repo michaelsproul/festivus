@@ -1,8 +1,12 @@
 use iron::prelude::*;
 use iron::status::Status;
+
 use plugin;
 use typemap::Key;
+
 use urlencoded::{UrlEncodedQuery, UrlEncodedBody, QueryMap};
+
+use rustc_serialize::{json, Encodable};
 
 use types::*;
 
@@ -24,8 +28,20 @@ pub fn timestamp(d: &Date) -> String {
     format!("{}", d.format("%Y-%m-%d %H:%M:%S"))
 }
 
-/// Send a JSON or JSON-P response (if `callback` is present in the query string).
-//pub fn json_response()
+/// Create a JSON or JSON-P response (if `callback` is present in the query string).
+pub fn jsonp_string<T: Encodable>(req: &mut Request, val: T) -> String {
+    let json_val = json::as_json(&val);
+    match get_query_param(req, "callback") {
+        // JSON-P response.
+        Ok(callback) => {
+            format!("{}({})", callback, json_val)
+        }
+        // Regular JSON response.
+        Err(_) => {
+            format!("{}", json_val)
+        }
+    }
+}
 
 pub fn get_query_param<'a, 'b>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> {
     get_param::<UrlEncodedQuery>(req, param)

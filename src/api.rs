@@ -6,8 +6,6 @@ use router::Router;
 
 use iron_pg::PostgresReqExt;
 
-use rustc_serialize::json;
-
 use types::*;
 use util::*;
 use db;
@@ -46,8 +44,7 @@ fn get_power(req: &mut Request) -> IronResult<Response> {
 
     let result = PlotJson { x: x_values, y: y_values };
 
-    // TODO: JSON-P.
-    let data_string = format!("{}", json::as_json(&result));
+    let data_string = jsonp_string(req, result);
 
     Ok(Response::with((Status::Ok, data_string)))
 }
