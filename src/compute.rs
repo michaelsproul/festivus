@@ -1,5 +1,6 @@
 use types::*;
 
+// Compute the energy usage for a given stream in joules (J, or Ws).
 pub fn integral(data: &[Power], stream: PowerStream) -> i64 {
     let (first, tail) = match data.split_first() {
         Some((first, tail)) => (first, tail),

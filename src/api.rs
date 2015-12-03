@@ -1,6 +1,10 @@
+use std::collections::HashSet;
+use std::collections::BTreeMap;
+
 use iron;
 use iron::status::Status::{self, BadRequest, InternalServerError};
 use iron::prelude::*;
+use urlencoded::UrlEncodedQuery;
 
 use router::Router;
 
@@ -31,18 +35,36 @@ fn get_start_and_end(req: &mut Request) -> WebResult<(Date, Date)> {
     }
 }
 
+// Parse stream values from a query string.
+fn get_streams(req: &mut Request) -> Option<HashSet<PowerStream>> {
+    req.get_ref::<UrlEncodedQuery>().ok()
+       .and_then(|query_map| query_map.get("stream"))
+       .and_then(|stream_strings| stream_strings.into_iter()
+                                                .map(|s| PowerStream::from_str(&s[..]))
+                                                .collect())
+}
+
+fn all_streams() -> HashSet<PowerStream> {
+    let mut streams = HashSet::new();
+    streams.extend(&[Total, HotWater, Solar]);
+    streams
+}
+
 // GET /power?start=X&end=X
 fn get_power(req: &mut Request) -> IronResult<Response> {
     let (start, end) = try_res!(get_start_and_end(req));
-    println!("start: {:?}, end: {:?}", start, end);
+    let streams = get_streams(req).unwrap_or_else(|| all_streams());
+    println!("start: {:?}, end: {:?}, streams: {:?}", start, end, streams);
 
     let power_data: Vec<Power> = try_res!(db::get_power(req, start, end));
 
-    // Construct the x and y values for plotting.
-    let x_values: Vec<String> = power_data.iter().map(|x| &x.time).map(timestamp).collect();
-    let y_values: Vec<i32> = power_data.iter().map(|x| x.total).collect();
-
-    let result = PlotJson { x: x_values, y: y_values };
+    let mut result = BTreeMap::new();
+    for stream in streams {
+        result.insert(
+            stream.as_str(),
+            StreamJson::from_power_data(&power_data, stream, true)
+        );
+    }
 
     let data_string = jsonp_string(req, result);
 

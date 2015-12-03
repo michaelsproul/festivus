@@ -87,7 +87,7 @@ fn main_with_result() -> Result<(), Error> {
     let mut server = Chain::new(router);
     server.link_before(db_manager);
 
-    Iron::new(server).http("localhost:3000").unwrap();
+    Iron::new(server).http("0.0.0.0:3000").unwrap();
 
     Ok(())
 }

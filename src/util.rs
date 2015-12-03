@@ -54,11 +54,11 @@ pub fn get_body_param<'a, 'b>(req: &mut Request<'a, 'b>, param: &str) -> Result<
 pub fn get_param<'a, 'b, T>(req: &mut Request<'a, 'b>, param: &str) -> Result<String, ()> where
     T: plugin::Plugin<Request<'a, 'b>>,
     T: Key<Value=QueryMap> {
-    let req_body = match req.get_ref::<T>() {
-        Ok(body) => body,
+    let req_params = match req.get_ref::<T>() {
+        Ok(params) => params,
         Err(_) => return Err(())
     };
-    req_body.get(param).and_then(|v| v.first().cloned()).ok_or(())
+    req_params.get(param).and_then(|v| v.first().cloned()).ok_or(())
 }
 
 pub fn parse_i32(v: String) -> Result<i32, ()> {
