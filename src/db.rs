@@ -8,7 +8,7 @@ use types::*;
 use util::err_response;
 
 const QUERY_SQL: &'static str =
-    "SELECT time, total, hot_water, solar FROM power WHERE time >= $1 AND time <= $2";
+    "SELECT time, total, hot_water, solar FROM power WHERE time >= $1 AND time <= $2 ORDER BY time ASC";
 
 // Retrieve rows from the DB.
 pub fn get_power(req: &mut Request, start: Date, end: Date) -> WebResult<Vec<Power>> {
