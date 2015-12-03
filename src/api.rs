@@ -44,6 +44,13 @@ fn get_streams(req: &mut Request) -> Option<HashSet<PowerStream>> {
                                                 .collect())
 }
 
+// Check if the query string contains the `energy` query.
+fn is_energy_query(req: &mut Request) -> bool {
+    req.get_ref::<UrlEncodedQuery>()
+       .map(|query_map| query_map.contains_key("energy"))
+       .unwrap_or(false)
+}
+
 fn all_streams() -> HashSet<PowerStream> {
     let mut streams = HashSet::new();
     streams.extend(&[Total, HotWater, Solar]);
@@ -54,6 +61,7 @@ fn all_streams() -> HashSet<PowerStream> {
 fn get_power(req: &mut Request) -> IronResult<Response> {
     let (start, end) = try_res!(get_start_and_end(req));
     let streams = get_streams(req).unwrap_or_else(|| all_streams());
+    let compute_energy = is_energy_query(req);
     println!("start: {:?}, end: {:?}, streams: {:?}", start, end, streams);
 
     let power_data: Vec<Power> = try_res!(db::get_power(req, start, end));
@@ -62,7 +70,7 @@ fn get_power(req: &mut Request) -> IronResult<Response> {
     for stream in streams {
         result.insert(
             stream.as_str(),
-            StreamJson::from_power_data(&power_data, stream, true)
+            StreamJson::from_power_data(&power_data, stream, compute_energy)
         );
     }
 
