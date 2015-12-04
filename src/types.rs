@@ -18,6 +18,16 @@ pub struct Power {
     pub solar: i32
 }
 
+impl Power {
+    fn get(&self, stream: PowerStream) -> i32 {
+        match stream {
+            Total => self.total,
+            HotWater => self.hot_water,
+            Solar => self.solar
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub enum PowerStream {
     Total,
@@ -58,7 +68,7 @@ impl StreamJson {
     pub fn from_power_data(power_data: &[Power], stream: PowerStream, compute_energy: bool)
     -> StreamJson {
         let x_values: Vec<String> = power_data.iter().map(|x| &x.time).map(timestamp).collect();
-        let y_values: Vec<i32> = power_data.iter().map(|x| x.total).collect();
+        let y_values: Vec<i32> = power_data.iter().map(|x| x.get(stream)).collect();
         let energy = if compute_energy {
             Some(integral(power_data, stream))
         } else {
